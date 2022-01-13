@@ -125,8 +125,8 @@ namespace BookStorages
                 WriteString(binaryWriter, book.Publisher, MaxNameLength);
                 WriteString(binaryWriter, book.ISBN, MaxIsbnLength);
                 WriteString(binaryWriter, book.Currency, MaxCurrencyLength);
-                string time;
-                if ((time = book.GetPublicationDate()).Equals("NYP"))
+                string time = book.GetPublicationDate();
+                if (time.Equals("NYP"))
                 {
                     binaryWriter.Write(false);
                     binaryWriter.Write((long)0);
