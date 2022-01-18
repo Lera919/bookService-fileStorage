@@ -1,0 +1,7 @@
+﻿{
+  "MaxTitleLength": 30,
+  "MaxNameLength": 30,
+  "MaxIsbnLength": 17,
+  "MaxCurrencyLength": 3,
+  "FileName" :  "books.db"
+}

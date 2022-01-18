@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using BookClass;
 using BookStorages;
 using Interfaces;
@@ -9,6 +10,13 @@ namespace BookServiceTask.Tests
     [TestFixture]
     public class BookServiceTests
     {
+        private string path;
+        [SetUp]
+        public void TestSetUp()
+        {
+            string projectDirectory = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.Parent.FullName;
+            path = Path.Combine(projectDirectory, "Storage\\settings.json");
+        }
        
             [TestCaseSource(typeof(TestCasesSource), nameof(TestCasesSource.TestCasesSource_BookStorage))]
             public void BookService_BookStorage_BooksNotPublished_Tests(Book[] books, decimal[] price, int[] pages)
@@ -20,9 +28,9 @@ namespace BookServiceTask.Tests
                 }
 
                 BookService service = new BookService(books);
-                service.Save(new BinaryBookStorage());
+                service.Save(new BinaryBookStorage(path));
                 service.Clear();
-                service.Load(new BinaryBookStorage());
+                service.Load(new BinaryBookStorage(path));
                 var afterRestore = service.GetBooks();
                 CollectionAssert.AreEqual(books, afterRestore);
             }
@@ -36,11 +44,10 @@ namespace BookServiceTask.Tests
                 books[i].Pages = pages[i];
                 books[i].Publish(dates[i]);
             }
-
             BookService service = new BookService(books);
-            service.Save(new BinaryBookStorage());
+            service.Save(new BinaryBookStorage(path));
             service.Clear();
-            service.Load(new BinaryBookStorage());
+            service.Load(new BinaryBookStorage(path));
             var afterRestore = service.GetBooks();
             CollectionAssert.AreEqual(books, afterRestore);
         }

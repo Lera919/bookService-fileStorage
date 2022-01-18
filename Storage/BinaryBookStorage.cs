@@ -8,20 +8,33 @@ using System.Xml.Serialization;
 using BookClass;
 using BookServiceTask;
 using Interfaces;
-
+using Microsoft.Extensions.Configuration;
 namespace BookStorages
 {
     public class BinaryBookStorage : IStorage<Book>
     {
-        private const int MaxTitleLength = 30;
-        private const int MaxNameLength = 30;
-        private const int MaxIsbnLength = 17;
-        private const int MaxCurrencyLength = 3;
-        private const int BookSize = ((sizeof(int) + MaxNameLength) * 2) + (sizeof(int) + MaxIsbnLength) + (sizeof(int) + MaxTitleLength) + 
-            (sizeof(int) + MaxCurrencyLength) + sizeof(bool)+
-            sizeof(long) + sizeof(int) + sizeof(decimal); 
+        private readonly int MaxTitleLength;
+        private readonly int MaxNameLength;
+        private readonly int MaxIsbnLength;
+        private readonly int MaxCurrencyLength;
+        private readonly string File;
+        private readonly int BookSize ; 
         // sizeof(publisher) + sizeof(str length) + sizeof(author) + sizeof(str length) +
         // sizeof(isbn) + sizeof(str length) + sizef(titleLength) + sizeof(currency) + sizeof(str length)  + MaxNameLength + sizeof(ticks) + sizeof(pages) + sizeof(price)
+
+        public BinaryBookStorage(string path)
+        {
+           IConfiguration configuration = new ConfigurationBuilder().AddJsonFile(path).Build();
+            this.MaxTitleLength = int.Parse(configuration["MaxTitleLength"]);
+            this.MaxNameLength = int.Parse(configuration["MaxNameLength"]);
+            this.MaxIsbnLength = int.Parse(configuration["MaxIsbnLength"]);
+            this.MaxCurrencyLength = int.Parse(configuration["MaxCurrencyLength"]);
+            this.File = configuration["FileName"];
+            BookSize = ((sizeof(int) + MaxNameLength) * 2) + (sizeof(int) + MaxIsbnLength) + (sizeof(int) + MaxTitleLength) +
+            (sizeof(int) + MaxCurrencyLength) + sizeof(bool) +
+            sizeof(long) + sizeof(int) + sizeof(decimal);
+        }
+
         public int LoadSize { get; set; }
         public IEnumerable<Book> Load()
         {
@@ -39,7 +52,7 @@ namespace BookStorages
 
         public void Save(IEnumerable<Book> collection, bool append)
         {
-            using Stream stream = append ? new FileStream("books.db", FileMode.Append, FileAccess.Write) : new FileStream("books.db", FileMode.Truncate, FileAccess.Write);
+            using Stream stream = append ? new FileStream(this.File, FileMode.Append, FileAccess.Write) : new FileStream(this.File, FileMode.Truncate, FileAccess.Write);
             foreach(var book in collection)
             {
                 var bytes = BookToBytes(book);
@@ -55,7 +68,7 @@ namespace BookStorages
         /// <exception cref="ArgumentNullException">
         /// Thrown if the array of bytes is null.
         /// </exception>
-        private static Book BytesToBook(byte[] bytes)
+        private Book BytesToBook(byte[] bytes)
         {
             if (bytes == null)
             {
@@ -109,7 +122,7 @@ namespace BookStorages
         /// <exception cref="ArgumentNullException">
         /// Thrown if the record is null.
         /// </exception>
-        private static byte[] BookToBytes(Book book)
+        private byte[] BookToBytes(Book book)
         {
             if (book == null)
             {
